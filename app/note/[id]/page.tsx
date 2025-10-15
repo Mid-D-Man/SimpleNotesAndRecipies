@@ -1,0 +1,98 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { NoteEditorHeader } from "@/components/note-editor-header"
+import { FormattingToolbar } from "@/components/formatting-toolbar"
+import { NoteTitle } from "@/components/note-title"
+import { NoteContent } from "@/components/note-content"
+import { storage } from "@/lib/storage"
+
+export default function NoteEditorPage({ params }: { params: { id: string } }) {
+  const router = useRouter()
+  const [title, setTitle] = useState("Untitled Note")
+  const [content, setContent] = useState("")
+  const [category, setCategory] = useState("Personal")
+
+  useEffect(() => {
+    if (params.id !== "new") {
+      const allNotes = storage.getNotes()
+      const note = allNotes.find((n) => n.id === params.id && n.type === "regular")
+      if (note) {
+        setTitle(note.title)
+        setContent(note.content)
+        setCategory(note.category || "Personal")
+      }
+    }
+  }, [params.id])
+
+  const handleFormat = (format: string) => {
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+
+    if (format.startsWith("color:")) {
+      const color = format.split(":")[1]
+      document.execCommand("foreColor", false, color)
+    } else {
+      switch (format) {
+        case "bold":
+          document.execCommand("bold")
+          break
+        case "italic":
+          document.execCommand("italic")
+          break
+        case "underline":
+          document.execCommand("underline")
+          break
+        case "bulletList":
+          document.execCommand("insertUnorderedList")
+          break
+        case "orderedList":
+          document.execCommand("insertOrderedList")
+          break
+        case "alignLeft":
+          document.execCommand("justifyLeft")
+          break
+        case "alignCenter":
+          document.execCommand("justifyCenter")
+          break
+        case "alignRight":
+          document.execCommand("justifyRight")
+          break
+      }
+    }
+  }
+
+  const handleBack = () => {
+    router.push("/")
+  }
+
+  return (
+    <main className="flex flex-col h-screen w-full overflow-x-hidden bg-background">
+      {/* Header - 15% */}
+      <div className="h-[15vh] min-h-[100px] max-h-[140px] flex-shrink-0">
+        <NoteEditorHeader
+          onBack={handleBack}
+          noteId={params.id}
+          title={title}
+          content={content}
+          category={category}
+          onCategoryChange={setCategory}
+        />
+      </div>
+
+      {/* Content area - 70% with proper spacing */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-8 pb-12 min-h-0">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <NoteTitle value={title} onChange={setTitle} />
+          <NoteContent value={content} onChange={setContent} />
+        </div>
+      </div>
+
+      {/* Toolbar - 15% */}
+      <div className="h-[15vh] min-h-[80px] max-h-[120px] flex-shrink-0">
+        <FormattingToolbar onFormat={handleFormat} />
+      </div>
+    </main>
+  )
+}
