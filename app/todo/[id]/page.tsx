@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { RecipeHeader } from "@/components/recipe-header"
 import { RecipeNotesSidebar } from "@/components/recipe-notes-sidebar"
 import { RecipeStepsSection } from "@/components/recipe-steps-section"
@@ -24,12 +24,13 @@ interface Note {
   content: string
 }
 
-export default function RecipeEditorPage({ params }: { params: { id: string } }) {
+export default function TodoEditorPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
   const [title, setTitle] = useState("Chocolate Chip Cookies")
   const [currentCategory, setCurrentCategory] = useState("ingredients")
-  const [recipeCategory, setRecipeCategory] = useState("Desserts")
+  const [tags, setTags] = useState<string[]>([])
+  const [availableTags, setAvailableTags] = useState<string[]>([])
 
   const [steps, setSteps] = useState<RecipeStep[]>([
     {
@@ -74,17 +75,19 @@ export default function RecipeEditorPage({ params }: { params: { id: string } })
   ])
 
   useEffect(() => {
+    setAvailableTags(storage.getTags("todo"))
+
     if (params.id !== "new") {
       const allNotes = storage.getNotes()
-      const recipe = allNotes.find((n) => n.id === params.id && n.type === "recipe")
-      if (recipe) {
-        setTitle(recipe.title)
-        setRecipeCategory(recipe.category || "Uncategorized")
-        if (recipe.steps) {
-          setSteps(recipe.steps as any)
+      const todo = allNotes.find((n) => n.id === params.id && n.type === "todo")
+      if (todo) {
+        setTitle(todo.title)
+        setTags(todo.tags || [])
+        if (todo.steps) {
+          setSteps(todo.steps as any)
         }
-        if (recipe.notes) {
-          setNotes(recipe.notes as any)
+        if (todo.notes) {
+          setNotes(todo.notes as any)
         }
       }
     }
@@ -126,46 +129,42 @@ export default function RecipeEditorPage({ params }: { params: { id: string } })
     setNotes(notes.filter((note) => note.id !== id))
   }
 
-  const handleSave = () => {
-    const recipeData = {
+  const handleSave = async () => {
+    const todoData = {
       id: params.id === "new" ? Date.now().toString() : params.id,
       title,
-      content: "", // Not used for recipes
+      content: "",
       preview: `${steps.length} steps`,
       lastModified: new Date().toISOString(),
       isBookmarked: false,
-      type: "recipe" as const,
-      category: recipeCategory,
+      type: "todo" as const,
+      tags,
       steps: steps,
       notes: notes,
     }
 
     if (params.id === "new") {
-      storage.addNote(recipeData)
-      router.push(`/recipe/${recipeData.id}`)
+      storage.addNote(todoData)
+      router.push(`/todo/${todoData.id}`)
     } else {
-      storage.updateNote(params.id, recipeData)
+      storage.updateNote(params.id, todoData)
     }
 
-    toast({
-      title: "Recipe saved",
-      description: "Your recipe has been saved successfully.",
-    })
+    tags.forEach((tag) => storage.addTag(tag, "todo"))
+    setAvailableTags(storage.getTags("todo"))
   }
 
   const handleDelete = () => {
-    storage.deleteNote(params.id)
     toast({
-      title: "Recipe deleted",
-      description: "Your recipe has been deleted.",
+      title: "Todo deleted",
+      description: "Your todo has been deleted.",
       variant: "destructive",
     })
-    router.push("/")
   }
 
   const handleShare = () => {
     toast({
-      title: "Share recipe",
+      title: "Share todo",
       description: "Share functionality coming soon.",
     })
   }
@@ -181,11 +180,13 @@ export default function RecipeEditorPage({ params }: { params: { id: string } })
       <div className="h-[15vh] min-h-[100px] max-h-[140px] flex flex-col border-b border-border bg-card">
         <RecipeHeader
           onBack={handleBack}
+          todoId={params.id}
+          tags={tags}
+          availableTags={availableTags}
+          onTagsChange={setTags}
           onSave={handleSave}
           onDelete={handleDelete}
           onShare={handleShare}
-          category={recipeCategory}
-          onCategoryChange={setRecipeCategory}
         />
       </div>
 
@@ -204,7 +205,7 @@ export default function RecipeEditorPage({ params }: { params: { id: string } })
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="text-xl sm:text-2xl font-semibold border-none px-0 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
-              placeholder="Recipe title..."
+              placeholder="Todo title..."
             />
             <RecipeCategoryTabs currentCategory={currentCategory} onCategoryChange={setCurrentCategory} />
           </div>

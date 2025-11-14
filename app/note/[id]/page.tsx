@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { NoteEditorHeader } from "@/components/note-editor-header"
 import { FormattingToolbar } from "@/components/formatting-toolbar"
 import { NoteTitle } from "@/components/note-title"
@@ -12,16 +12,20 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [title, setTitle] = useState("Untitled Note")
   const [content, setContent] = useState("")
-  const [category, setCategory] = useState("Personal")
+  const [tags, setTags] = useState<string[]>([])
+  const [availableTags, setAvailableTags] = useState<string[]>([])
 
   useEffect(() => {
+    // Load available tags
+    setAvailableTags(storage.getTags("note"))
+
     if (params.id !== "new") {
       const allNotes = storage.getNotes()
       const note = allNotes.find((n) => n.id === params.id && n.type === "regular")
       if (note) {
         setTitle(note.title)
         setContent(note.content)
-        setCategory(note.category || "Personal")
+        setTags(note.tags || [])
       }
     }
   }, [params.id])
@@ -67,6 +71,30 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
     router.push("/")
   }
 
+  const handleSave = async () => {
+    const noteData = {
+      id: params.id === "new" ? Date.now().toString() : params.id,
+      title,
+      content,
+      preview: content.substring(0, 100),
+      lastModified: new Date().toISOString(),
+      isBookmarked: false,
+      type: "regular" as const,
+      tags,
+    }
+
+    if (params.id === "new") {
+      storage.addNote(noteData)
+      router.push(`/note/${noteData.id}`)
+    } else {
+      storage.updateNote(params.id, noteData)
+    }
+
+    // Add tags to available tags
+    tags.forEach((tag) => storage.addTag(tag, "note"))
+    setAvailableTags(storage.getTags("note"))
+  }
+
   return (
     <main className="flex flex-col h-screen w-full overflow-x-hidden bg-background">
       {/* Header - 15% */}
@@ -76,8 +104,10 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
           noteId={params.id}
           title={title}
           content={content}
-          category={category}
-          onCategoryChange={setCategory}
+          tags={tags}
+          availableTags={availableTags}
+          onTagsChange={setTags}
+          onSave={handleSave}
         />
       </div>
 

@@ -7,14 +7,20 @@ export interface Note {
   preview: string
   lastModified: string
   isBookmarked: boolean
-  type: "regular" | "recipe"
-  category?: string
+  type: "regular" | "todo"
+  tags: string[]
   steps?: Array<{ id: string; title: string; content: string }>
   notes?: Array<{ id: string; category: string; content: string }>
 }
 
+export interface Tag {
+  name: string
+  type: "note" | "todo"
+}
+
 const NOTES_KEY = "notes_app_data"
 const USER_KEY = "notes_app_user"
+const TAGS_KEY = "notes_app_tags"
 
 export const storage = {
   getNotes: (): Note[] => {
@@ -46,6 +52,31 @@ export const storage = {
   deleteNote: (id: string) => {
     const notes = storage.getNotes()
     storage.saveNotes(notes.filter((n) => n.id !== id))
+  },
+
+  getTags: (type: "note" | "todo"): string[] => {
+    if (typeof window === "undefined") return []
+    const data = localStorage.getItem(TAGS_KEY)
+    const tags = data ? JSON.parse(data) : []
+    return tags.filter((t: Tag) => t.type === type).map((t: Tag) => t.name)
+  },
+
+  addTag: (name: string, type: "note" | "todo") => {
+    if (typeof window === "undefined") return
+    const tags = localStorage.getItem(TAGS_KEY)
+    const tagsList = tags ? JSON.parse(tags) : []
+    if (!tagsList.some((t: Tag) => t.name === name && t.type === type)) {
+      tagsList.push({ name, type })
+      localStorage.setItem(TAGS_KEY, JSON.stringify(tagsList))
+    }
+  },
+
+  removeTag: (name: string, type: "note" | "todo") => {
+    if (typeof window === "undefined") return
+    const tags = localStorage.getItem(TAGS_KEY)
+    const tagsList = tags ? JSON.parse(tags) : []
+    const filtered = tagsList.filter((t: Tag) => !(t.name === name && t.type === type))
+    localStorage.setItem(TAGS_KEY, JSON.stringify(filtered))
   },
 
   getUser: () => {
