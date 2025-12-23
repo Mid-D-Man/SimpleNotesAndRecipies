@@ -27,52 +27,14 @@ interface Note {
 export default function TodoEditorPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
-  const [title, setTitle] = useState("Chocolate Chip Cookies")
-  const [currentCategory, setCurrentCategory] = useState("ingredients")
+  const [title, setTitle] = useState("Untitled Todo")
+  const [currentCategory, setCurrentCategory] = useState("Steps")
+  const [categories, setCategories] = useState<string[]>(["Steps"])
   const [tags, setTags] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
 
-  const [steps, setSteps] = useState<RecipeStep[]>([
-    {
-      id: "1",
-      category: "ingredients",
-      title: "Dry ingredients",
-      content: "2 cups all-purpose flour\n1 tsp baking soda\n1 tsp salt",
-    },
-    {
-      id: "2",
-      category: "ingredients",
-      title: "Wet ingredients",
-      content: "1 cup butter (softened)\n3/4 cup granulated sugar\n3/4 cup brown sugar\n2 eggs\n2 tsp vanilla extract",
-    },
-    {
-      id: "3",
-      category: "instructions",
-      title: "Prepare ingredients",
-      content: "Gather all ingredients and measure them out. Bring butter to room temperature.",
-    },
-    {
-      id: "4",
-      category: "instructions",
-      title: "Mix dry ingredients",
-      content: "In a bowl, whisk together flour, baking soda, and salt.",
-    },
-  ])
-
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "n1",
-      category: "ingredients",
-      title: "Shopping list",
-      content: "Don't forget chocolate chips!\nUse good quality butter for best results.",
-    },
-    {
-      id: "n2",
-      category: "instructions",
-      title: "Timing notes",
-      content: "Bake for 10-12 minutes at 350°F\nCookies will look slightly underdone - that's perfect!",
-    },
-  ])
+  const [steps, setSteps] = useState<RecipeStep[]>([])
+  const [notes, setNotes] = useState<Note[]>([])
 
   useEffect(() => {
     setAvailableTags(storage.getTags("todo"))
@@ -88,6 +50,10 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
         }
         if (todo.notes) {
           setNotes(todo.notes as any)
+        }
+        if (todo.categories) {
+          setCategories(todo.categories as any)
+          setCurrentCategory((todo.categories as any)[0])
         }
       }
     }
@@ -129,6 +95,22 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
     setNotes(notes.filter((note) => note.id !== id))
   }
 
+  const handleAddCategory = (name: string) => {
+    if (!categories.includes(name)) {
+      const newCategories = [...categories, name]
+      setCategories(newCategories)
+    }
+  }
+
+  const handleRemoveCategory = (name: string) => {
+    const newCategories = categories.filter((c) => c !== name)
+    setCategories(newCategories)
+    const stepsInCategory = steps.filter((s) => s.category === name)
+    if (stepsInCategory.length > 0) {
+      setSteps(steps.filter((s) => s.category !== name))
+    }
+  }
+
   const handleSave = async () => {
     const todoData = {
       id: params.id === "new" ? Date.now().toString() : params.id,
@@ -141,6 +123,7 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
       tags,
       steps: steps,
       notes: notes,
+      categories: categories,
     }
 
     if (params.id === "new") {
@@ -176,8 +159,8 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
   const categorySteps = steps.filter((step) => step.category === currentCategory)
 
   return (
-    <main className="flex flex-col h-screen w-full overflow-x-hidden bg-background">
-      <div className="h-[15vh] min-h-[100px] max-h-[140px] flex flex-col border-b border-border bg-card">
+    <main className="flex flex-col h-screen w-full overflow-x-hidden bg-background no-horizontal-scroll">
+      <div className="h-[15vh] min-h-[100px] max-h-[140px] flex flex-col border-b border-border bg-card flex-shrink-0">
         <RecipeHeader
           onBack={handleBack}
           todoId={params.id}
@@ -187,27 +170,37 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
           onSave={handleSave}
           onDelete={handleDelete}
           onShare={handleShare}
+          title={title}
+          steps={steps}
         />
       </div>
 
-      <div className="flex-1 flex overflow-hidden overflow-x-hidden min-h-0">
-        <RecipeNotesSidebar
-          notes={notes}
-          currentCategory={currentCategory}
-          onAddNote={handleAddNote}
-          onUpdateNote={handleUpdateNote}
-          onDeleteNote={handleDeleteNote}
-        />
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="hidden sm:flex sm:w-[200px] md:w-[280px] flex-shrink-0 border-r border-border">
+          <RecipeNotesSidebar
+            notes={notes}
+            currentCategory={currentCategory}
+            onAddNote={handleAddNote}
+            onUpdateNote={handleUpdateNote}
+            onDeleteNote={handleDeleteNote}
+          />
+        </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden overflow-x-hidden bg-background">
-          <div className="p-4 sm:p-6 border-b border-border bg-card space-y-4">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+          <div className="p-3 sm:p-4 md:p-6 border-b border-border bg-card space-y-3 sm:space-y-4 flex-shrink-0">
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-xl sm:text-2xl font-semibold border-none px-0 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
+              className="text-lg sm:text-xl md:text-2xl font-semibold border-none px-0 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
               placeholder="Todo title..."
             />
-            <RecipeCategoryTabs currentCategory={currentCategory} onCategoryChange={setCurrentCategory} />
+            <RecipeCategoryTabs
+              categories={categories}
+              currentCategory={currentCategory}
+              onCategoryChange={setCurrentCategory}
+              onAddCategory={handleAddCategory}
+              onRemoveCategory={handleRemoveCategory}
+            />
           </div>
 
           <RecipeStepsSection

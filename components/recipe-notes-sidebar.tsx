@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { RecipeNoteCard } from "@/components/recipe-note-card"
@@ -36,17 +36,19 @@ export function RecipeNotesSidebar({
     <div
       className={cn(
         "relative border-r border-border bg-card transition-all duration-300 flex flex-col overflow-hidden",
-        isExpanded ? "w-[280px] sm:w-[320px] md:w-[360px]" : "w-[48px]",
+        isExpanded ? "w-[280px] sm:w-[320px] md:w-[360px]" : "w-14",
       )}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-4 top-6 z-20 h-8 w-8 rounded-full border-2 border-border bg-card shadow-md hover:bg-accent hover:shadow-lg transition-all"
+      <button
         onClick={() => setIsExpanded(!isExpanded)}
+        className="absolute left-full top-6 z-20 h-8 w-8 rounded-l-full border-2 border-border bg-card shadow-md hover:bg-accent hover:shadow-lg transition-all flex items-center justify-center"
       >
-        {isExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-      </Button>
+        {isExpanded ? (
+          <ChevronLeft className="w-4 h-4" />
+        ) : (
+          <ChevronRight className="w-4 h-4" />
+        )}
+      </button>
 
       {isExpanded ? (
         <div className="flex flex-col h-full overflow-hidden">
@@ -83,7 +85,7 @@ export function RecipeNotesSidebar({
         </div>
       ) : (
         <div className="flex items-center justify-center h-full py-8">
-          <span className="text-sm font-medium text-muted-foreground [writing-mode:vertical-lr] rotate-180">Notes</span>
+          <span className="text-xs font-medium text-muted-foreground [writing-mode:vertical-lr] rotate-180 whitespace-nowrap">Notes</span>
         </div>
       )}
     </div>

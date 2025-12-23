@@ -11,7 +11,7 @@ interface NoteCardProps {
   preview: string
   lastModified: string
   isBookmarked: boolean
-  tags: string[]
+  tags?: string[]
   onToggleBookmark: (id: string) => void
   onClick: (id: string) => void
 }
@@ -22,7 +22,7 @@ export function NoteCard({
   preview,
   lastModified,
   isBookmarked,
-  tags,
+  tags = [],
   onToggleBookmark,
   onClick,
 }: NoteCardProps) {
@@ -48,7 +48,7 @@ export function NoteCard({
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="text-xs text-muted-foreground">{new Date(lastModified).toLocaleDateString()}</p>
       </div>
-      {tags.length > 0 && (
+      {tags && tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {tags.map((tag) => (
             <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, Share2, Save, Trash2, MoreVertical } from 'lucide-react'
+import { ArrowLeft, Share2, Save, Trash2, MoreVertical, Download } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
@@ -9,8 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from 'next/navigation'
 import { storage } from "@/lib/storage"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Input } from "@/components/ui/input"
-import { X } from 'lucide-react'
+import { TagSelector } from "@/components/tag-selector"
 
 interface NoteEditorHeaderProps {
   onBack: () => void
@@ -37,7 +36,6 @@ export function NoteEditorHeader({
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [newTagInput, setNewTagInput] = useState("")
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -49,6 +47,16 @@ export function NoteEditorHeader({
       })
     } finally {
       setTimeout(() => setIsSaving(false), 500)
+    }
+  }
+
+  const handleBack = async () => {
+    setIsSaving(true)
+    try {
+      await onSave()
+    } finally {
+      setIsSaving(false)
+      onBack()
     }
   }
 
@@ -65,8 +73,6 @@ export function NoteEditorHeader({
   const handleAddTag = (tag: string) => {
     if (tag && !tags.includes(tag)) {
       onTagsChange([...tags, tag])
-      storage.addTag(tag, "note")
-      setNewTagInput("")
     }
   }
 
@@ -100,11 +106,26 @@ export function NoteEditorHeader({
     })
   }
 
+  const handleDownload = () => {
+    const element = document.createElement("a")
+    const file = new Blob([`${title}\n\n${content}`], { type: "text/plain" })
+    element.href = URL.createObjectURL(file)
+    element.download = `${title || "note"}.txt`
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+    URL.revokeObjectURL(element.href)
+    toast({
+      title: "Note downloaded",
+      description: "Your note has been downloaded as a text file.",
+    })
+  }
+
   return (
     <header className="h-full px-4 py-3 flex flex-col gap-3 border-b border-border bg-card">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="w-5 h-5" />
             <span className="sr-only">Back</span>
           </Button>
@@ -135,42 +156,22 @@ export function NoteEditorHeader({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleDuplicate}>Duplicate</DropdownMenuItem>
-              <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownload} className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Download as Text
+              </DropdownMenuItem>
               <DropdownMenuItem>Add to favorites</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        {tags.map((tag) => (
-          <div
-            key={tag}
-            className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-          >
-            {tag}
-            <button
-              onClick={() => handleRemoveTag(tag)}
-              className="hover:opacity-70 transition-opacity"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-        ))}
-        <div className="flex gap-1">
-          <Input
-            value={newTagInput}
-            onChange={(e) => setNewTagInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleAddTag(newTagInput)
-              }
-            }}
-            placeholder="Add tag..."
-            className="h-7 w-20 text-xs"
-          />
-        </div>
-      </div>
+      <TagSelector
+        selectedTags={tags}
+        availableTags={availableTags}
+        onAddTag={handleAddTag}
+        onRemoveTag={handleRemoveTag}
+      />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
