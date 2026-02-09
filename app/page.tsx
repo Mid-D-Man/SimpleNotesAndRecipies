@@ -227,27 +227,32 @@ export default function HomePage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {(activeView === "notes" ? noteTags : todoTags).map((tag) => (
-                  <button
+                  <div
                     key={tag}
-                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                    className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                    className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
                       selectedTag === tag
                         ? "bg-primary text-primary-foreground"
                         : "bg-secondary text-foreground hover:bg-secondary/80"
                     }`}
                   >
-                    {tag}
+                    <button
+                      onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                      className="cursor-pointer hover:opacity-70"
+                    >
+                      {tag}
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleRemoveTag(tag)
                         if (selectedTag === tag) setSelectedTag(null)
                       }}
-                      className="ml-2 hover:opacity-70"
+                      className="hover:opacity-70 ml-1"
+                      aria-label={`Remove ${tag} tag`}
                     >
                       ×
                     </button>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
