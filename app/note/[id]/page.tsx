@@ -8,27 +8,36 @@ import { NoteTitle } from "@/components/note-title"
 import { NoteContent } from "@/components/note-content"
 import { storage } from "@/lib/storage"
 
-export default function NoteEditorPage({ params }: { params: { id: string } }) {
+export default function NoteEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const [noteId, setNoteId] = useState<string | null>(null)
   const [title, setTitle] = useState("Untitled Note")
   const [content, setContent] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
 
   useEffect(() => {
-    // Load available tags
-    setAvailableTags(storage.getTags("note"))
+    // Await params and load note data
+    const loadNote = async () => {
+      const resolvedParams = await params
+      setNoteId(resolvedParams.id)
+      
+      // Load available tags
+      setAvailableTags(storage.getTags("note"))
 
-    if (params.id !== "new") {
-      const allNotes = storage.getNotes()
-      const note = allNotes.find((n) => n.id === params.id && n.type === "regular")
-      if (note) {
-        setTitle(note.title)
-        setContent(note.content)
-        setTags(note.tags || [])
+      if (resolvedParams.id !== "new") {
+        const allNotes = storage.getNotes()
+        const note = allNotes.find((n) => n.id === resolvedParams.id && n.type === "regular")
+        if (note) {
+          setTitle(note.title)
+          setContent(note.content)
+          setTags(note.tags || [])
+        }
       }
     }
-  }, [params.id])
+    
+    loadNote()
+  }, [params])
 
   const handleFormat = (format: string) => {
     const selection = window.getSelection()
@@ -72,8 +81,10 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
   }
 
   const handleSave = async () => {
+    if (!noteId) return
+    
     const noteData = {
-      id: params.id === "new" ? Date.now().toString() : params.id,
+      id: noteId === "new" ? Date.now().toString() : noteId,
       title,
       content,
       preview: content.substring(0, 100),
@@ -83,11 +94,11 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
       tags,
     }
 
-    if (params.id === "new") {
+    if (noteId === "new") {
       storage.addNote(noteData)
       router.push(`/note/${noteData.id}`)
     } else {
-      storage.updateNote(params.id, noteData)
+      storage.updateNote(noteId, noteData)
     }
 
     // Add tags to available tags
@@ -101,7 +112,7 @@ export default function NoteEditorPage({ params }: { params: { id: string } }) {
       <div className="h-[15vh] min-h-[100px] max-h-[140px] flex-shrink-0">
         <NoteEditorHeader
           onBack={handleBack}
-          noteId={params.id}
+          noteId={noteId || ""}
           title={title}
           content={content}
           tags={tags}
