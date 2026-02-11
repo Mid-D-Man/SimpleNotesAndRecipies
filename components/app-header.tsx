@@ -107,7 +107,7 @@ export function AppHeader() {
           </SheetContent>
         </Sheet>
 
-        <h1 className="text-lg font-serif text-foreground">My Notes</h1>
+        <h1 className="text-lg font-serif text-foreground">Notes & Todos</h1>
 
         <Button variant="ghost" size="icon" className="text-foreground" onClick={handleSync}>
           <Cloud className="w-5 h-5" />
