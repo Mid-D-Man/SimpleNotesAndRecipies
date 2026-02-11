@@ -7,11 +7,14 @@ import { LoadingScreen } from "@/components/loading-screen"
 import { AppHeader } from "@/components/app-header"
 import { NoteCard } from "@/components/note-card"
 import { Button } from "@/components/ui/button"
-import { Plus, ChevronDown } from 'lucide-react'
+import { Plus, ChevronDown, Wand2 } from 'lucide-react'
 import { storage, type Note } from "@/lib/storage"
+import { AINoteGenerator } from "@/components/ai-note-generator"
+import { useAuth } from "@/lib/auth-context"
 
 export default function HomePage() {
   const router = useRouter()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [notes, setNotes] = useState<Note[]>([])
   const [todos, setTodos] = useState<Note[]>([])
@@ -21,6 +24,7 @@ export default function HomePage() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState<"recent" | "alphabetical" | "bookmarked">("recent")
+  const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false)
 
   useEffect(() => {
     // Load notes from local storage
@@ -88,6 +92,24 @@ export default function HomePage() {
 
   const handleNewTodo = () => {
     router.push("/todo/new")
+  }
+
+  const handleAIGenerate = (content: string) => {
+    const newNote: Note = {
+      id: Date.now().toString(),
+      title: "AI Generated Note",
+      content,
+      preview: content.substring(0, 100) + "...",
+      lastModified: new Date().toISOString(),
+      isBookmarked: false,
+      type: "regular",
+      tags: ["AI-Generated"],
+    }
+    storage.addNote(newNote)
+    storage.addTag("AI-Generated", "note")
+    setNotes([...notes, newNote])
+    setNoteTags(storage.getTags("note"))
+    setAiGeneratorOpen(false)
   }
 
   const handleAddTag = (name: string) => {
@@ -266,10 +288,24 @@ export default function HomePage() {
                 {selectedTag && ` - ${selectedTag}`}
               </h2>
             </div>
-            <Button size="default" className="gap-2 w-full sm:w-auto" onClick={activeView === "notes" ? handleNewNote : handleNewTodo}>
-              <Plus className="w-4 h-4" />
-              <span className="text-sm sm:text-base">{activeView === "notes" ? "New Note" : "New Todo"}</span>
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              {activeView === "notes" && (
+                <Button 
+                  size="default" 
+                  variant="outline"
+                  className="gap-2 flex-1 sm:flex-none" 
+                  onClick={() => setAiGeneratorOpen(true)}
+                  disabled={!user}
+                >
+                  <Wand2 className="w-4 h-4" />
+                  <span className="text-sm sm:text-base">AI Generate</span>
+                </Button>
+              )}
+              <Button size="default" className="gap-2 flex-1 sm:flex-none" onClick={activeView === "notes" ? handleNewNote : handleNewTodo}>
+                <Plus className="w-4 h-4" />
+                <span className="text-sm sm:text-base">{activeView === "notes" ? "New Note" : "New Todo"}</span>
+              </Button>
+            </div>
           </div>
 
           {sortedItems.length === 0 ? (
@@ -296,6 +332,13 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      <AINoteGenerator 
+        open={aiGeneratorOpen}
+        onOpenChange={setAiGeneratorOpen}
+        onGenerate={handleAIGenerate}
+        userId={user?.id || ""}
+      />
     </main>
   )
 }
