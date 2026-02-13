@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const systemPrompt = 'You are a helpful assistant that creates well-structured notes. Based on the user prompt, create a clear and organized note with a title and detailed content. Format as JSON: { "title": "...", "content": "..." }'
 
     const result = await generateText({
-      model: 'groq/mixtral-8x7b-32768',
+      model: 'anthropic/claude-opus-4.5',
       system: systemPrompt,
       prompt: `Create a note based on this: "${prompt}"\n\nRespond with valid JSON format.`,
       temperature: 0.7,
@@ -33,9 +33,10 @@ export async function POST(req: Request) {
       })
     }
   } catch (error) {
-    console.error('[v0] AI note creation error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create note'
+    console.error('[v0] AI note creation error:', errorMessage, error)
     return Response.json(
-      { error: 'Failed to create note' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

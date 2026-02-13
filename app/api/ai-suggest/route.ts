@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       : 'You are a helpful assistant that enhances notes. Based on the provided content, suggest 1-3 ways to improve, organize, or expand the note. Keep suggestions practical and brief. Format as JSON array: [{ "title": "...", "description": "..." }]'
 
     const result = await generateText({
-      model: 'groq/mixtral-8x7b-32768',
+      model: 'anthropic/claude-opus-4.5',
       system: systemPrompt,
       prompt: `Content: "${content}"\n\nProvide suggestions in valid JSON format.`,
       temperature: 0.7,
@@ -34,9 +34,10 @@ export async function POST(req: Request) {
       })
     }
   } catch (error) {
-    console.error('[v0] AI suggestion error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate suggestions'
+    console.error('[v0] AI suggestion error:', errorMessage, error)
     return Response.json(
-      { error: 'Failed to generate suggestions' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
