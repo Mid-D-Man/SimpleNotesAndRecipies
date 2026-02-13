@@ -42,10 +42,12 @@ export function AINoteCreator({ onNoteCreated }: AINoteCreatorProps) {
       if (!response.ok) {
         const errorData = await response.json()
         const errorMessage = errorData?.error || `HTTP ${response.status}: Failed to generate note`
+        console.error('[v0] AI note API error:', { status: response.status, errorData })
         throw new Error(errorMessage)
       }
 
       const data = await response.json()
+      console.log('[v0] AI note response:', data)
       
       if (data.note) {
         onNoteCreated(data.note)

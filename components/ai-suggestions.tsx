@@ -39,14 +39,18 @@ export function AISuggestions({ content, type, onApplySuggestion }: AISuggestion
       })
 
       if (!response.ok) {
-        throw new Error("Failed to get suggestions")
+        const errorData = await response.json()
+        console.error('[v0] AI suggestions API error:', { status: response.status, errorData })
+        throw new Error(errorData?.error || "Failed to get suggestions")
       }
 
       const data = await response.json()
+      console.log('[v0] AI suggestions response:', data)
       setSuggestions(data.suggestions || [])
       setIsExpanded(true)
     } catch (err) {
-      setError("Could not generate suggestions. Please try again.")
+      const errorMsg = err instanceof Error ? err.message : "Could not generate suggestions"
+      setError(errorMsg)
       console.error("[v0] Suggestion error:", err)
     } finally {
       setIsLoading(false)
