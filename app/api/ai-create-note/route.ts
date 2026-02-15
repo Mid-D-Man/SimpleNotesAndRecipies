@@ -1,6 +1,9 @@
 export async function POST(req: Request) {
   try {
     const { prompt } = await req.json()
+    console.log('[v0] AI create-note API called with prompt:', prompt)
+    console.log('[v0] GROQ_API_KEY env var:', process.env.GROQ_API_KEY ? 'SET' : 'NOT SET')
+    console.log('[v0] All env vars:', Object.keys(process.env).filter(k => k.includes('GROQ')))
 
     if (!prompt) {
       return Response.json(
@@ -10,6 +13,7 @@ export async function POST(req: Request) {
     }
 
     if (!process.env.GROQ_API_KEY) {
+      console.log('[v0] Missing GROQ_API_KEY!')
       return Response.json(
         { error: 'GROQ_API_KEY environment variable is not set' },
         { status: 500 }
