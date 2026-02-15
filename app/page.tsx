@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { LoadingScreen } from "@/components/loading-screen"
 import { AppHeader } from "@/components/app-header"
 import { NoteCard } from "@/components/note-card"
+import { AINoteCreator } from "@/components/ai-note-creator"
 import { Button } from "@/components/ui/button"
 import { Plus, ChevronDown } from 'lucide-react'
 import { storage, type Note } from "@/lib/storage"
@@ -257,6 +258,28 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* AI Note Creator - Only show in notes view */}
+          {activeView === "notes" && (
+            <AINoteCreator
+              onNoteCreated={(note) => {
+                const newNote: Note = {
+                  id: Date.now().toString(),
+                  title: note.title,
+                  content: note.content,
+                  preview: note.content.substring(0, 100) + "...",
+                  lastModified: new Date().toISOString(),
+                  isBookmarked: false,
+                  type: "regular",
+                  tags: ["AI Generated"],
+                }
+                storage.saveNote(newNote)
+                storage.addTag("AI Generated", "note")
+                setNotes([newNote, ...notes])
+                setNoteTags(storage.getTags("note"))
+              }}
+            />
+          )}
 
           {/* Header and New Button */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

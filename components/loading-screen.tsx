@@ -28,7 +28,7 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
           <BookOpen className="w-16 h-16 text-primary animate-pulse" strokeWidth={1.5} />
         </div>
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-serif text-foreground">Notes & Recipes</h1>
+          <h1 className="text-2xl font-serif text-foreground">Notes & Todos</h1>
           <p className="text-sm text-muted-foreground">Loading your notes...</p>
         </div>
         <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">

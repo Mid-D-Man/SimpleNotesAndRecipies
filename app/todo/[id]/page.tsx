@@ -6,6 +6,7 @@ import { RecipeHeader } from "@/components/recipe-header"
 import { RecipeNotesSidebar } from "@/components/recipe-notes-sidebar"
 import { RecipeStepsSection } from "@/components/recipe-steps-section"
 import { RecipeCategoryTabs } from "@/components/recipe-category-tabs"
+import { AISuggestions } from "@/components/ai-suggestions"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { storage } from "@/lib/storage"
@@ -210,6 +211,20 @@ export default function TodoEditorPage({ params }: { params: { id: string } }) {
             onUpdateStep={handleUpdateStep}
             onDeleteStep={handleDeleteStep}
           />
+
+          <div className="p-4 md:p-6 border-t border-border">
+            <AISuggestions 
+              content={title + " " + steps.map(s => s.title).join(" ")} 
+              type="todo"
+              onApplySuggestion={(suggestion) => {
+                handleAddStep()
+                const newStep = categorySteps[categorySteps.length - 1]
+                if (newStep) {
+                  handleUpdateStep(newStep.id, suggestion.title, suggestion.description)
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
     </main>

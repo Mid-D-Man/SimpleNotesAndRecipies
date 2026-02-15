@@ -6,6 +6,7 @@ import { NoteEditorHeader } from "@/components/note-editor-header"
 import { FormattingToolbar } from "@/components/formatting-toolbar"
 import { NoteTitle } from "@/components/note-title"
 import { NoteContent } from "@/components/note-content"
+import { AISuggestions } from "@/components/ai-suggestions"
 import { storage } from "@/lib/storage"
 
 export default function NoteEditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -127,6 +128,13 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
         <div className="max-w-3xl mx-auto space-y-6">
           <NoteTitle value={title} onChange={setTitle} />
           <NoteContent value={content} onChange={setContent} />
+          <AISuggestions 
+            content={content} 
+            type="note"
+            onApplySuggestion={(suggestion) => {
+              setContent(prev => prev + "\n\n" + suggestion.title + ": " + suggestion.description)
+            }}
+          />
         </div>
       </div>
 

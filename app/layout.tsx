@@ -7,14 +7,14 @@ import "./globals.css"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
-  title: "Notes & Recipes",
-  description: "Beautiful note-taking app with recipe management",
+  title: "Notes & Todos",
+  description: "Beautiful note-taking and todo management app",
   generator: "v0.app",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Notes & Recipes",
+    title: "Notes & Todos",
   },
 }
 
