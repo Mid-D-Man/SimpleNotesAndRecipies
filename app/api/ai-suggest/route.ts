@@ -17,8 +17,11 @@ export async function POST(req: Request) {
     }
 
     const systemPrompt = type === 'todo' 
-      ? 'You are a helpful assistant that generates practical todo items. Based on the provided content, suggest 1-3 specific, actionable todo items that could help accomplish the goal mentioned. Keep each suggestion concise (under 20 words). Format as JSON array: [{ "title": "...", "description": "..." }]'
-      : 'You are a helpful assistant that enhances notes. Based on the provided content, suggest 1-3 ways to improve, organize, or expand the note. Keep suggestions practical and brief. Format as JSON array: [{ "title": "...", "description": "..." }]'
+      ? 'Suggest 1-3 todo items to help with this. Respond ONLY with JSON: [{"title":"...","description":"..."}]'
+      : 'Suggest 1-3 ways to improve this. Respond ONLY with JSON: [{"title":"...","description":"..."}]'
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000) // 15 second timeout
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -30,18 +33,15 @@ export async function POST(req: Request) {
         model: 'llama-3.3-70b-versatile',
         messages: [
           {
-            role: 'system',
-            content: systemPrompt,
-          },
-          {
             role: 'user',
-            content: `Content: "${content}"\n\nProvide suggestions in valid JSON format.`,
+            content: `${systemPrompt}\n\nContent: "${content}"`,
           },
         ],
-        temperature: 0.7,
-        max_tokens: 1024,
+        temperature: 0.5,
+        max_tokens: 300,
       }),
-    })
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout))
 
     if (!response.ok) {
       const errorData = await response.json()

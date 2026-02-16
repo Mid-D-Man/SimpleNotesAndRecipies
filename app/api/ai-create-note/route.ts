@@ -20,7 +20,10 @@ export async function POST(req: Request) {
       )
     }
 
-    const systemPrompt = 'You are a helpful assistant that creates well-structured notes. Based on the user prompt, create a clear and organized note with a title and detailed content. Format as JSON: { "title": "...", "content": "..." }'
+    const systemPrompt = 'Create a note from this prompt. Respond ONLY with valid JSON: {"title":"...","content":"..."}'
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -32,18 +35,15 @@ export async function POST(req: Request) {
         model: 'llama-3.3-70b-versatile',
         messages: [
           {
-            role: 'system',
-            content: systemPrompt,
-          },
-          {
             role: 'user',
-            content: `Create a note based on this: "${prompt}"\n\nRespond with valid JSON format.`,
+            content: `${systemPrompt}\n\nPrompt: ${prompt}`,
           },
         ],
-        temperature: 0.7,
-        max_tokens: 1024,
+        temperature: 0.5,
+        max_tokens: 500,
       }),
-    })
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout))
 
     if (!response.ok) {
       const errorData = await response.json()

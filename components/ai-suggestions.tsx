@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Sparkles, Loader2, ChevronDown, ChevronUp } from "lucide-react"
+import { Sparkles, Loader2, ChevronDown, ChevronUp, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface Suggestion {
@@ -20,6 +20,7 @@ export function AISuggestions({ content, type, onApplySuggestion }: AISuggestion
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [isExpanded, setIsExpanded] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [appliedIndex, setAppliedIndex] = useState<number | null>(null)
 
   const handleGetSuggestions = async () => {
     if (!content.trim()) {
