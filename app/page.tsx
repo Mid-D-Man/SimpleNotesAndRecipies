@@ -273,7 +273,7 @@ export default function HomePage() {
                   type: "regular",
                   tags: ["AI Generated"],
                 }
-                storage.saveNote(newNote)
+                storage.addNote(newNote)
                 storage.addTag("AI Generated", "note")
                 setNotes([newNote, ...notes])
                 setNoteTags(storage.getTags("note"))
