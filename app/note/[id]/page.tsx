@@ -7,6 +7,7 @@ import { FormattingToolbar } from "@/components/formatting-toolbar"
 import { NoteTitle } from "@/components/note-title"
 import { NoteContent } from "@/components/note-content"
 import { AISuggestions } from "@/components/ai-suggestions"
+import { NoteColorSelector } from "@/components/note-color-selector"
 import { storage } from "@/lib/storage"
 
 export default function NoteEditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,6 +17,7 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
   const [content, setContent] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [backgroundColor, setBackgroundColor] = useState("bg-white")
 
   useEffect(() => {
     // Await params and load note data
@@ -33,6 +35,7 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
           setTitle(note.title)
           setContent(note.content)
           setTags(note.tags || [])
+          setBackgroundColor(note.backgroundColor || "bg-white")
         }
       }
     }
@@ -93,6 +96,7 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
       isBookmarked: false,
       type: "regular" as const,
       tags,
+      backgroundColor,
     }
 
     if (noteId === "new") {
@@ -124,7 +128,7 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Content area - 70% with proper spacing */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-8 pb-12 min-h-0">
+      <div className={`flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-8 pb-12 min-h-0 ${backgroundColor}`}>
         <div className="max-w-3xl mx-auto space-y-6">
           <NoteTitle value={title} onChange={setTitle} />
           <NoteContent value={content} onChange={setContent} />
@@ -134,6 +138,10 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
             onApplySuggestion={(suggestion) => {
               setContent(prev => prev + "\n\n" + suggestion.title + ": " + suggestion.description)
             }}
+          />
+          <NoteColorSelector 
+            currentColor={backgroundColor}
+            onColorChange={setBackgroundColor}
           />
         </div>
       </div>

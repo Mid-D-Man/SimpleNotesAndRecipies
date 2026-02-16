@@ -9,6 +9,7 @@ export interface Note {
   isBookmarked: boolean
   type: "regular" | "todo"
   tags: string[]
+  backgroundColor?: string
   steps?: Array<{ id: string; title: string; content: string }>
   notes?: Array<{ id: string; category: string; content: string }>
 }
