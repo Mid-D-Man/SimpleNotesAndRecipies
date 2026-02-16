@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { NoteEditorHeader } from "@/components/note-editor-header"
 import { FormattingToolbar } from "@/components/formatting-toolbar"
 import { NoteTitle } from "@/components/note-title"
-import { NoteContent } from "@/components/note-content"
+import { NoteContentRich } from "@/components/note-content-rich"
 import { AISuggestions } from "@/components/ai-suggestions"
 import { NoteColorSelector } from "@/components/note-color-selector"
 import { storage } from "@/lib/storage"
@@ -131,12 +131,13 @@ export default function NoteEditorPage({ params }: { params: Promise<{ id: strin
       <div className={`flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-8 pb-12 min-h-0 ${backgroundColor}`}>
         <div className="max-w-3xl mx-auto space-y-6">
           <NoteTitle value={title} onChange={setTitle} />
-          <NoteContent value={content} onChange={setContent} />
+          <NoteContentRich value={content} onChange={setContent} />
           <AISuggestions 
             content={content} 
             type="note"
             onApplySuggestion={(suggestion) => {
-              setContent(prev => prev + "\n\n" + suggestion.title + ": " + suggestion.description)
+              const appendText = `<p><strong>${suggestion.title}:</strong> ${suggestion.description}</p>`
+              setContent(prev => prev + appendText)
             }}
           />
           <NoteColorSelector 

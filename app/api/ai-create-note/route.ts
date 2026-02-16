@@ -58,10 +58,11 @@ export async function POST(req: Request) {
       const note = JSON.parse(responseText)
       return Response.json({ note })
     } catch {
-      // If parsing fails, create a note from the response
+      // If parsing fails, create a note from the response with a title based on prompt
+      const titleFromPrompt = prompt.split('\n')[0].substring(0, 50) || 'AI Generated Note'
       return Response.json({
         note: {
-          title: 'AI Generated Note',
+          title: titleFromPrompt,
           content: responseText
         }
       })

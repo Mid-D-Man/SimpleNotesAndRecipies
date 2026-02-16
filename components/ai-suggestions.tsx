@@ -105,10 +105,13 @@ export function AISuggestions({ content, type, onApplySuggestion }: AISuggestion
                     </p>
                     {onApplySuggestion && (
                       <Button
-                        onClick={() => onApplySuggestion(suggestion)}
+                        onClick={() => {
+                          console.log('[v0] Applying suggestion:', suggestion)
+                          onApplySuggestion(suggestion)
+                        }}
                         variant="ghost"
                         size="sm"
-                        className="mt-2 h-7 text-xs"
+                        className="mt-2 h-7 text-xs hover:bg-primary/20"
                       >
                         Apply
                       </Button>
