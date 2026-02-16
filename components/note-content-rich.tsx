@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 interface NoteContentRichProps {
   value: string
@@ -9,12 +9,13 @@ interface NoteContentRichProps {
 
 export function NoteContentRich({ value, onChange }: NoteContentRichProps) {
   const contentRef = useRef<HTMLDivElement>(null)
-  const initialLoadRef = useRef(true)
+  const [isClient, setIsClient] = useState(false)
 
+  // Only hydrate on client side to prevent mismatch
   useEffect(() => {
-    if (contentRef.current && initialLoadRef.current && value) {
+    setIsClient(true)
+    if (contentRef.current && value) {
       contentRef.current.innerHTML = value
-      initialLoadRef.current = false
     }
   }, [value])
 
@@ -24,12 +25,28 @@ export function NoteContentRich({ value, onChange }: NoteContentRichProps) {
     }
   }
 
+  // During SSR, render empty; content will be populated on client
+  if (!isClient) {
+    return (
+      <div
+        className="w-full min-h-[400px] outline-none notebook-lines pt-2 pb-8 text-foreground leading-8 bg-transparent border-none focus:outline-none"
+        style={{
+          paddingLeft: "0",
+          lineHeight: "32px",
+          whiteSpace: "pre-wrap",
+          wordWrap: "break-word",
+        }}
+      />
+    )
+  }
+
   return (
     <div
       ref={contentRef}
       onInput={handleInput}
       contentEditable
       suppressContentEditableWarning
+      suppressHydrationWarning
       className="w-full min-h-[400px] outline-none notebook-lines pt-2 pb-8 text-foreground leading-8 bg-transparent border-none focus:outline-none"
       style={{
         paddingLeft: "0",
